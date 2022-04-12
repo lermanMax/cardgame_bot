@@ -8,8 +8,6 @@ import random
 
 from fileDB_for_id import put_id_in_file, get_id, get_text_from
 from config import API_TOKEN, DB_SUBSCRIBERS
-from card_photo_id import CARD_PHOTO_ID
-
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +25,7 @@ delete_card_action = 'delete_message'
 
 basemenu_list = [get_card_word, ]
 
-card_photo_cache = CARD_PHOTO_ID  # {number: tg_file_id}
+card_photo_cache = {}  # {number: tg_file_id}
 
 last_card_cache = {}  # {user_id: number, ...}
 
@@ -171,12 +169,14 @@ def get_card_number_for_user(user_id: int) -> int:
         return 1
 
 
-def get_card_photo_or_tg_id(card_number: int):
-    if card_number in card_photo_cache:
-        return card_photo_cache[card_number]
-    else:
-        print('нет картинки в базе:(')
-        return types.InputFile(f"./cards/{ card_number }.png")
+async def send_photo_and_save_id(card_number: int, message: types.Message):
+    card = types.InputFile(f"./cards/{ card_number }.png")
+    sended_msg = await bot.send_photo(
+        chat_id=message.chat.id,
+        photo=card,
+        reply_markup=get_card_keyboard()
+    )
+    card_photo_cache[card_number] = sended_msg.photo[0].file_id
 
 
 @dp.message_handler(lambda message: message.text in basemenu_list)
@@ -187,14 +187,40 @@ async def base_menu(message: types.Message):
     logging.info('push basemenu button from: %r', message.from_user.id)
     if message.text == get_card_word:
         card_number = get_card_number_for_user(message.from_user.id)
-        card = get_card_photo_or_tg_id(card_number)
-        await bot.send_photo(
+        if card_number in card_photo_cache:
+            card = card_photo_cache[card_number]
+            try:
+                await bot.send_photo(
+                    chat_id=message.chat.id,
+                    photo=card,
+                    reply_markup=get_card_keyboard()
+                )
+            except exceptions.WrongFileIdentifier:
+                logging.error(f'wrong file ID for card number: {card_number}')
+                await send_photo_and_save_id(card_number, message)
+        else:
+            await send_photo_and_save_id(card_number, message)
+
+        last_card_cache[message.from_user.id] = card_number
+    return
+
+
+@dp.message_handler(commands=['all'])
+async def cache_all_photo_command(message: types.Message):
+    logging.info('push admin comand "all" from: %r', message.from_user.id)
+    full_seq = (
+        market_number_sequence
+        + tech_number_sequence
+        + trend_number_sequence
+    )
+    for n in full_seq:
+        card = types.InputFile(f"./cards/{ n }.png")
+        sended_msg = await bot.send_photo(
             chat_id=message.chat.id,
             photo=card,
             reply_markup=get_card_keyboard()
         )
-        last_card_cache[message.from_user.id] = card_number
-    return
+        card_photo_cache[n] = sended_msg.photo[0].file_id
 
 
 @dp.message_handler(content_types=types.message.ContentType.ANY)
