@@ -134,15 +134,17 @@ async def callback_vote_action(
     # callback_data contains all info from callback data
     logging.info('Got this callback data: %r', callback_data)
 
-    await query.answer()  # answer callback query as soon as possible
     callback_data_action = callback_data['action']
 
     if callback_data_action == delete_card_action:
-        await bot.delete_message(
-            chat_id=query.from_user.id,
-            message_id=query.message.message_id
-        )
-        logging.info('Delete card')
+        try:
+            await bot.delete_message(
+                chat_id=query.from_user.id,
+                message_id=query.message.message_id
+            )
+            logging.info('Delete card')
+        except exceptions.MessageToDeleteNotFound:
+            logging.info('MessageToDeleteNotFound')
     else:
         logging.info('Unkown callback_data: %r', callback_data)
 
