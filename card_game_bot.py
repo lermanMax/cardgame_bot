@@ -19,7 +19,7 @@ dp = Dispatcher(bot)
 
 vote_cb = callback_data.CallbackData('vote', 'action')  # vote:<action>
 
-get_card_word = '⚙️ 📊 🛒 Взять карту'
+get_card_word = '🃏 Взять карту'
 delete_card_word = '🗑️ Сбросить'
 delete_card_action = 'delete_message'
 
@@ -29,15 +29,25 @@ card_photo_cache = {}  # {number: tg_file_id}
 
 last_card_cache = {}  # {user_id: number, ...}
 
-market_numbers_range = (1, 29)
-market_number_sequence = [
-    n for n in range(market_numbers_range[0], market_numbers_range[1]+1)]
-tech_numbers_range = (30, 55)
-tech_number_sequence = [
-    n for n in range(tech_numbers_range[0], tech_numbers_range[1]+1)]
-trend_numbers_range = (56, 87)
-trend_number_sequence = [
-    n for n in range(trend_numbers_range[0], trend_numbers_range[1]+1)]
+# 1-18 аудитория
+# 19-35 сырье
+# 36-44 тип продукта
+# 45-55 тренд
+# 56-61 привычка
+# 62-64 специальная карта
+cards_numbers_range = (
+    (1, 18),
+    (19, 35),
+    (36, 44),
+    (45, 55),
+    (56, 61),
+    (62, 64),
+)
+cards_number_sequences = []
+for _range in cards_numbers_range:
+    cards_number_sequences.append(
+        [n for n in range(_range[0], _range[-1] + 1)]
+    )
 
 
 async def send_message(
@@ -151,24 +161,18 @@ async def callback_vote_action(
 
 def get_card_number_for_user(user_id: int) -> int:
     if user_id not in last_card_cache:
-        return random.choice(
-            market_number_sequence
-            + tech_number_sequence
-            + trend_number_sequence
-        )
-    last_naumber = last_card_cache[user_id]
-    if last_naumber in market_number_sequence:
-        return random.choice(tech_number_sequence + trend_number_sequence)
+        full_sequence = []
+        for s in cards_number_sequences:
+            full_sequence.extend(s)
+        return random.choice(full_sequence)
 
-    elif last_naumber in tech_number_sequence:
-        return random.choice(market_number_sequence + trend_number_sequence)
-
-    elif last_naumber in trend_number_sequence:
-        return random.choice(market_number_sequence + tech_number_sequence)
-
-    else:
-        logging.info('number out of range')
-        return 1
+    last_number = last_card_cache[user_id]
+    sequence_for_user = []
+    for sequence in cards_number_sequences:
+        if last_number not in sequence:
+            sequence_for_user.extend(sequence)
+   
+    return random.choice(sequence_for_user)
 
 
 async def send_photo_and_save_id(card_number: int, message: types.Message):
@@ -210,12 +214,10 @@ async def base_menu(message: types.Message):
 @dp.message_handler(commands=['all'])
 async def cache_all_photo_command(message: types.Message):
     logging.info('push admin comand "all" from: %r', message.from_user.id)
-    full_seq = (
-        market_number_sequence
-        + tech_number_sequence
-        + trend_number_sequence
-    )
-    for n in full_seq:
+    full_sequence = []
+    for s in cards_number_sequences:
+        full_sequence.extend(s)
+    for n in full_sequence:
         card = types.InputFile(f"./cards/{ n }.png")
         sended_msg = await bot.send_photo(
             chat_id=message.chat.id,
