@@ -9,14 +9,21 @@ Deployment instructions using docker.
   
   - Clone the project to the server with git.
 
-<h3>Create docker image<h3>
+<h3>Create docker image</h3>
 
-     docker build -t cardgame_bot .
+```
+docker build -t cardgame_bot .
+```
+
   - -t specifies the name.
   
   - . specifies the repo that the image is based on (project folder).
-  
-     docker run -t -i -d --restart unless-stopped --name cardgame_bot_run cardgame_bot
+
+
+
+```
+docker run -t -i -d --restart unless-stopped --name cardgame_bot_run cardgame_bot
+```
   - -t (--tty) allocates a pseudo-TTY.
   
   - -i (--interactive) keeps STDIN open even when not attached.
@@ -27,7 +34,8 @@ Deployment instructions using docker.
   
   - --name name the container.
   
-  Last argument in the command is the name of the image used for container creation.
+  - Last argument in the command is the name of the image used for container creation.
+  
   
  ## 'Dockerfile' info
 
