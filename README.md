@@ -12,21 +12,21 @@ Deployment instructions using docker.
 <h3>Create docker image<h3>
 
      docker build -t cardgame_bot .
-'-t' specifies the name.
+  - '-t' specifies the name.
   
-'.' specifies the repo that the image is based on (project folder).
+  - '.' specifies the repo that the image is based on (project folder).
   
   
        docker run -t -i -d --restart unless-stopped --name cardgame_bot_run cardgame_bot
-'-t'(--tty) allocates a pseudo-TTY.
+  - '-t'(--tty) allocates a pseudo-TTY.
   
-'-i'(--interactive) keeps STDIN open even when not attached.
+  - '-i'(--interactive) keeps STDIN open even when not attached.
   
-'-d'(--detach) will run container in background and prints container ID.
+  - '-d'(--detach) will run container in background and prints container ID.
   
-'--restart unless-stopped' will restart the container in any event except 'docker container stop' command.
+  - '--restart unless-stopped' will restart the container in any event except 'docker container stop' command.
   
-'--name' name the container.
+  - '--name' name the container.
   
   Last argument in the command is the name of the image used for container creation.
   
