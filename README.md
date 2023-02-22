@@ -16,8 +16,7 @@ Deployment instructions using docker.
   
   - '.' specifies the repo that the image is based on (project folder).
   
-  
-       docker run -t -i -d --restart unless-stopped --name cardgame_bot_run cardgame_bot
+     docker run -t -i -d --restart unless-stopped --name cardgame_bot_run cardgame_bot
   - '-t'(--tty) allocates a pseudo-TTY.
   
   - '-i'(--interactive) keeps STDIN open even when not attached.
